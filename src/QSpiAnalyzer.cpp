@@ -154,7 +154,11 @@ void QSpiAnalyzer::AdvanceToActiveEnableEdge()
 
 bool QSpiAnalyzer::IsInitialClockPolarityCorrect()
 {
-    if (mSck->GetBitState() == mSettings->mClockIdle || mSettings->mIgnoreInitialClkState) {
+    if (mSck->GetBitState() == mSettings->mClockIdle) {
+        return true;
+    }
+    else if (mSettings->mIgnoreInitialClkState) {
+        mSck->AdvanceToNextEdge();
         return true;
     }
 
