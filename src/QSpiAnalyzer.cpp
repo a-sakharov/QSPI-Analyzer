@@ -15,6 +15,10 @@ QSpiAnalyzer::QSpiAnalyzer()
         mCs(NULL)
 {
     SetAnalyzerSettings(mSettings.get()); 
+
+#if defined(LOGIC2) && (SOFTWARE == SALEAE)
+    UseFrameV2();
+#endif
 }
 
 QSpiAnalyzer::~QSpiAnalyzer()
@@ -346,6 +350,37 @@ void QSpiAnalyzer::GetBlock()
     result_frame.mType = (U8)mTransactionState;
 
     mResults->AddFrame(result_frame);
+
+#if defined(LOGIC2) && (SOFTWARE == SALEAE)
+    FrameV2 frame_v2;
+    const char* state_str;
+    switch (mTransactionState)
+    {
+        case QSpiTypes::SETUP_STATE:
+            state_str = "SETUP";
+            break;
+        case QSpiTypes::COMMAND_STATE:
+            state_str = "COMMAND";
+            break;
+        case QSpiTypes::ADDRESS_STATE:
+            state_str = "ADDRESS";
+            break;
+        case QSpiTypes::DUMMY_STATE:
+            state_str = "DUMMY";
+            break;
+        case QSpiTypes::DATA_STATE:
+            state_str = "DATA";
+            break;
+        default:
+            state_str = "UNDEFINED";
+            break;
+    }
+
+    frame_v2.AddInteger("data", data_word);
+    frame_v2.AddString("state", state_str);
+    mResults->AddFrameV2(frame_v2, "data_byte", result_frame.mStartingSampleInclusive, result_frame.mEndingSampleInclusive);
+#endif
+
     mResults->CommitResults();
 
     if (advancing){
